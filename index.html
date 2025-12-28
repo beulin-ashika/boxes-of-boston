@@ -254,7 +254,7 @@
       opacity: 0.7;
     }
     
-    /* Detail Panel */
+    /* Detail Panel - NEW LAYOUT */
     .overlay {
       position: fixed;
       top: 0;
@@ -276,24 +276,26 @@
     .detail-panel {
       position: fixed;
       top: 0;
-      right: -60vw;
-      width: 60vw;
+      right: 0;
+      width: auto;
       height: 100vh;
-      background: #001427;
+      background: transparent;
       color: #FFFBDB;
       z-index: 200;
-      transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
       overflow: hidden;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      transform: translateX(100%);
     }
     
     .detail-panel.open {
-      right: 0;
+      transform: translateX(0);
     }
     
     .detail-close {
-      position: absolute;
+      position: fixed;
       top: 20px;
       right: 20px;
       width: 40px;
@@ -304,7 +306,7 @@
       border-radius: 50%;
       font-size: 1.2rem;
       cursor: pointer;
-      z-index: 10;
+      z-index: 250;
       transition: all 0.3s ease;
     }
     
@@ -313,59 +315,69 @@
       color: #001427;
     }
     
+    /* Image container - 2:3 aspect ratio, full height */
     .detail-image {
-      width: 100%;
-      height: 80%;
-      background-size: contain;
+      aspect-ratio: 2 / 3;
+      height: 100vh;
+      width: auto;
+      background-size: cover;
       background-repeat: no-repeat;
       background-color: #001427;
-      background-position: left;
+      background-position: center;
+      position: relative;
     }
     
+    /* Text content overlaid at bottom with gradient fade */
     .detail-content {
-      padding: 24px 40px;
-      height: 20%;
-      display: flex;
-      flex-direction: column;
-      justify-content: right;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      padding: 60px 40px 40px 40px;
+      background: linear-gradient(to top, rgba(0, 20, 39, 0.95), rgba(0, 20, 39, 0.7), transparent);
     }
     
     .detail-content .directions {
-      text-align: right;
-      margin-bottom: 12px;
+      margin-bottom: 20px;
     }
     
     .detail-content .directions a {
       color: #FFFBDB;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 0.9rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 600;
       text-decoration: none;
-      opacity: 0.6;
+      opacity: 1;
       transition: opacity 0.3s ease;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #FFFBDB;
     }
     
     .detail-content .directions a:hover {
-      opacity: 1;
+      opacity: 0.7;
     }
     
     .detail-content h2 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 4px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      line-height: 1.2;
     }
     
     .detail-content .artist {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-style: italic;
-      opacity: 0.6;
+      opacity: 0.8;
+      margin-bottom: 10px;
     }
     
     .detail-content .address {
       font-size: 0.9rem;
-      opacity: 0.5;
-      margin-top: 8px;
+      opacity: 0.7;
+      line-height: 1.6;
     }
     
     /* Footer */
@@ -377,15 +389,6 @@
       font-size: 0.85rem;
       opacity: 0.5;
       margin-top: auto;
-    }
-    
-    body {
-      font-family: 'Assistant', sans-serif;
-      background: #625834;
-      color: #FFFBDB;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
     
     .hidden { display: none !important; }
@@ -479,7 +482,6 @@
 
   <!-- Detail Panel -->
   <div class="detail-panel" id="detail-panel">
-    <button class="detail-close" onclick="closePanel()">✕</button>
     <div class="detail-image" id="detail-image"></div>
     <div class="detail-content">
       <div class="directions">
@@ -490,6 +492,8 @@
       <p class="address" id="detail-address"></p>
     </div>
   </div>
+  
+  <button class="detail-close" id="detail-close-btn" onclick="closePanel()">✕</button>
 
   <footer>
     A personal project documenting the painted transformers around Boston ✦ Made with love by Beulin
