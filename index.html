@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Boxes of Boston</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Assistant:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            background: #625834;
+            color: #FFFBDB;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 40px;
+            background: #001427;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            cursor: pointer;
+        }
+
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #FFFBDB;
+        }
+
+        .logo p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-style: italic;
+            opacity: 0.7;
+            margin-top: 8px;
+            color: #FFFBDB;
+        }
+
+        nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: #FFFBDB;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding-bottom: 4px;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        nav a:hover,
+        nav a.active {
+            border-bottom-color: #FFFBDB;
+        }
+
+        /* Gallery */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .thumbnail {
+            aspect-ratio: 3/4;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease, opacity 0.3s ease;
+            position: relative;
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.25);
+            z-index: 10;
+        }
+
+        .gallery:has(.thumbnail:hover) .thumbnail:not(:hover) {
+            filter: blur(1px);
+            opacity: 0.8;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-state p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .empty-state button {
+            margin-top: 20px;
+            padding: 14px 28px;
+            background: #FFFBDB;
+            color: #001427;
+            border: none;
+            border-radius: 30px;
+            font-family: 'Assistant', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Submit Form */
+        .submit-view {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            display: none;
+        }
+
+        .submit-view.active {
+            display: block;
+        }
+
+        .submit-view h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .submit-view>p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            opacity: 0.7;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 251, 219, 0.1);
+            border: 1px solid rgba(255, 251, 219, 0.2);
+            border-radius: 8px;
+            color: #FFFBDB;
+            font-size: 1rem;
+            font-family: 'Assistant', sans-serif;
+        }
+
+        .form-group select option {
+            background: #001427;
+            color: #FFFBDB;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 251, 219, 0.3);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255, 251, 219, 0.5);
+        }
+
+        .upload-area.has-image {
+            padding: 0;
+            aspect-ratio: 3/4;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .upload-area p {
+            opacity: 0.6;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #FFFBDB;
+            color: #001427;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Assistant', sans-serif;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .status-message.success {
+            background: rgba(67, 233, 123, 0.2);
+        }
+
+        .status-message.error {
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        /* Map View */
+        .map-view {
+            display: none;
+            min-height: 60vh;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .map-view.active {
+            display: flex;
+        }
+
+        .map-view p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        /* Detail Panel */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 20, 39, 0.7);
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: -60vw;
+            width: 60vw;
+            height: 100vh;
+            background: #001427;
+            color: #FFFBDB;
+            z-index: 200;
+            transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-panel.open {
+            right: 0;
+        }
+
+        .detail-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 1px solid #FFFBDB;
+            color: #FFFBDB;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .detail-close:hover {
+            background: #FFFBDB;
+            color: #001427;
+        }
+
+        .detail-image {
+            width: 100%;
+            height: 75%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .detail-content {
+            padding: 24px 40px;
+            height: 25%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .detail-content .directions {
+            text-align: right;
+            margin-bottom: 12px;
+        }
+
+        .detail-content .directions a {
+            color: #FFFBDB;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.9rem;
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .detail-content .directions a:hover {
+            opacity: 1;
+        }
+
+        .detail-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .detail-content .artist {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            opacity: 0.6;
+        }
+
+        .detail-content .address {
+            font-size: 0.9rem;
+            opacity: 0.5;
+            margin-top: 8px;
+        }
+
+        /* Footer */
+        footer {
+            background: #001427;
+            color: #FFFBDB;
+            text-align: center;
+            padding: 30px 40px;
+            font-size: 0.85rem;
+            opacity: 0.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo" onclick="showView('gallery')">
+            <h1>The Boxes of Boston</h1>
+            <p>Documenting the art that is Boston's electrical transformers</p>
+        </div>
+        <nav>
+            <a href="#" id="nav-map" onclick="showView('map'); return false;">Map</a>
+            <a href="#" id="nav-submit" onclick="showView('submit'); return false;">Submit</a>
+        </nav>
+    </header>
+
+    <!-- Gallery View -->
+    <div id="gallery-view">
+        <div class="gallery" id="gallery"></div>
+        <div class="empty-state" id="empty-state">
+            <p>No boxes yet. Be the first to submit one!</p>
+            <button onclick="showView('submit')">Submit a Box</button>
+        </div>
+    </div>
+
+    <!-- Submit View -->
+    <div class="submit-view" id="submit-view">
+        <h2>Submit a Box</h2>
+        <p>Found a painted transformer? Share it with us.</p>
+
+        <form id="submit-form">
+            <div class="form-group">
+                <label>Photo *</label>
+                <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+                    <p>Click to upload an image</p>
+                </div>
+                <input type="file" id="file-input" accept="image/*" style="display: none;">
+            </div>
+
+            <div class="form-group">
+                <label>Artist (if known)</label>
+                <input type="text" id="artist-input" placeholder="Who made it?">
+            </div>
+
+            <div class="form-group">
+                <label>Neighborhood *</label>
+                <select id="neighborhood-input" required>
+                    <option value="">Select neighborhood</option>
+                    <option>Allston</option>
+                    <option>Back Bay</option>
+                    <option>Beacon Hill</option>
+                    <option>Brighton</option>
+                    <option>Brookline</option>
+                    <option>Cambridge</option>
+                    <option>Charlestown</option>
+                    <option>Dorchester</option>
+                    <option>East Boston</option>
+                    <option>Fenway</option>
+                    <option>Jamaica Plain</option>
+                    <option>Kendall Square</option>
+                    <option>Mission Hill</option>
+                    <option>North End</option>
+                    <option>Roxbury</option>
+                    <option>Seaport</option>
+                    <option>Somerville</option>
+                    <option>South Boston</option>
+                    <option>South End</option>
+                    <option>West End</option>
+                    <option>West Roxbury</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Address or cross streets *</label>
+                <input type="text" id="address-input" placeholder="e.g. Corner of Centre St and South St" required>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">Submit</button>
+            <div class="status-message hidden" id="status-message"></div>
+        </form>
+    </div>
+
+    <!-- Map View -->
+    <div class="map-view" id="map-view">
+        <p>Map coming soon</p>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+    <!-- Detail Panel -->
+    <div class="detail-panel" id="detail-panel">
+        <button class="detail-close" onclick="closePanel()">✕</button>
+        <div class="detail-image" id="detail-image"></div>
+        <div class="detail-content">
+            <div class="directions">
+                <a href="#" id="detail-directions" target="_blank">Get Directions →</a>
+            </div>
+            <h2 id="detail-neighborhood"></h2>
+            <p class="artist" id="detail-artist"></p>
+            <p class="address" id="detail-address"></p>
+        </div>
+    </div>
+
+    <footer>
+        A personal project documenting the painted transformers around Boston ✦ Made with love by Beulin
+    </footer>
+
+    <script>
+        // CONFIG - Replace these with your keys
+        const SHEET_ID = '1-_JuDHimLDBVsYuHieRBGXh-nts32UJHM91vmtzz4Zc';
+        const IMGBB_API_KEY = '2075fdf7cabba698e0f90618a30faf58';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymX89zSj57AcS7X2sOy2VDQgZXh3bddZ7DYEhfqKql7E0aNPNOp8Z-3f_LUiDyi62u/exec';
+
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+        let artworks = [];
+        let selectedFile = null;
+
+        // Fetch data from Google Sheet
+        async function fetchArtworks() {
+            try {
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                const json = JSON.parse(text.substring(47).slice(0, -2));
+                const rows = json.table.rows || [];
+
+                artworks = rows.map(row => ({
+                    id: row.c[0]?.v,
+                    artist: row.c[1]?.v,
+                    neighborhood: row.c[2]?.v,
+                    address: row.c[3]?.v,
+                    image_url: row.c[4]?.v,
+                    status: row.c[5]?.v
+                })).filter(item => item.status === 'approved' && item.image_url);
+
+                renderGallery();
+            } catch (error) {
+                console.error('Error fetching:', error);
+                artworks = [];
+                renderGallery();
+            }
+        }
+
+        // Render gallery
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            const emptyState = document.getElementById('empty-state');
+
+            if (artworks.length === 0) {
+                gallery.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            } else {
+                gallery.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+
+                gallery.innerHTML = artworks.map((art, i) => `
+          <div class="thumbnail" style="background-image: url('${art.image_url}')" onclick="openPanel(${i})"></div>
+        `).join('');
+            }
+        }
+
+        // View switching
+        function showView(view) {
+            document.getElementById('gallery-view').classList.add('hidden');
+            document.getElementById('submit-view').classList.remove('active');
+            document.getElementById('map-view').classList.remove('active');
+            document.getElementById('nav-map').classList.remove('active');
+            document.getElementById('nav-submit').classList.remove('active');
+
+            if (view === 'gallery') {
+                document.getElementById('gallery-view').classList.remove('hidden');
+            } else if (view === 'submit') {
+                document.getElementById('submit-view').classList.add('active');
+                document.getElementById('nav-submit').classList.add('active');
+            } else if (view === 'map') {
+                document.getElementById('map-view').classList.add('active');
+                document.getElementById('nav-map').classList.add('active');
+            }
+        }
+
+        // Panel controls
+        function openPanel(index) {
+            const art = artworks[index];
+            document.getElementById('detail-image').style.backgroundImage = `url('${art.image_url}')`;
+            document.getElementById('detail-neighborhood').textContent = art.neighborhood;
+            document.getElementById('detail-artist').textContent = `by ${art.artist}`;
+            document.getElementById('detail-address').textContent = art.address;
+            document.getElementById('detail-directions').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(art.address + ', Boston, MA')}`;
+
+            document.getElementById('overlay').classList.add('open');
+            document.getElementById('detail-panel').classList.add('open');
+        }
+
+        function closePanel() {
+            document.getElementById('overlay').classList.remove('open');
+            document.getElementById('detail-panel').classList.remove('open');
+        }
+
+        // File upload preview
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const url = URL.createObjectURL(file);
+                const uploadArea = document.getElementById('upload-area');
+                uploadArea.style.backgroundImage = `url('${url}')`;
+                uploadArea.classList.add('has-image');
+                uploadArea.innerHTML = '';
+            }
+        });
+
+        // Form submission
+        document.getElementById('submit-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const statusEl = document.getElementById('status-message');
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (!selectedFile) {
+                statusEl.textContent = 'Please select an image';
+                statusEl.className = 'status-message error';
+                statusEl.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            statusEl.classList.add('hidden');
+
+            try {
+                // Upload to ImgBB
+                const imgFormData = new FormData();
+                imgFormData.append('image', selectedFile);
+
+                const imgResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: imgFormData
+                });
+
+                const imgData = await imgResponse.json();
+                if (!imgData.success) throw new Error('Image upload failed');
+
+                const imageUrl = imgData.data.url;
+
+                // Submit to Google Sheet
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: Date.now(),
+                        artist: document.getElementById('artist-input').value || 'Unknown',
+                        neighborhood: document.getElementById('neighborhood-input').value,
+                        address: document.getElementById('address-input').value,
+                        image_url: imageUrl,
+                        status: 'pending'
+                    })
+                });
+
+                // Success
+                statusEl.textContent = 'Submitted! Your photo will appear after review.';
+                statusEl.className = 'status-message success';
+                statusEl.classList.remove('hidden');
+
+                // Reset form
+                document.getElementById('submit-form').reset();
+                document.getElementById('upload-area').style.backgroundImage = '';
+                document.getElementById('upload-area').classList.remove('has-image');
+                document.getElementById('upload-area').innerHTML = '<p>Click to upload an image</p>';
+                selectedFile = null;
+
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = 'Something went wrong. Please try again.';
+                statusEl.className = 'status-message error';
+                statusEl.classList.remove('hidden');
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+        });
+
+        // Init
+        fetchArtworks();
+    </script>
+</body>
+
+</html>
