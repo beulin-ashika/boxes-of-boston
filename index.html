@@ -277,7 +277,8 @@
       position: fixed;
       top: 0;
       right: -60vw;
-      width: 45vw;
+      max-width: 48vw;
+      width: auto;
       height: 100vh;
       background: #001427;
       color: #FFFBDB;
@@ -331,6 +332,22 @@
       max-width: 40%;
       text-align: right;      
     }
+
+    .detail-content::before {
+      content: "";
+      position: absolute;
+      inset: -24px -32px; /* extends past text edges */
+      background: linear-gradient(
+        to left,
+        rgba(0,0,0,0.65),
+        rgba(0,0,0,0.35),
+        rgba(0,0,0,0)
+      );
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: -1;
+    }
+
     
     .detail-content .directions {
       text-align: right;
