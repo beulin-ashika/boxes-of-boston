@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Boxes of Boston</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Assistant:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -23,10 +25,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
     }
     
     .logo {
       cursor: pointer;
+      flex: 1;
+      min-width: 200px;
     }
     
     .logo h1 {
@@ -59,16 +65,71 @@
       padding-bottom: 4px;
       border-bottom: 1px solid transparent;
       transition: border-color 0.3s ease;
+      cursor: pointer;
     }
     
     nav a:hover, nav a.active {
       border-bottom-color: #FFFBDB;
     }
     
-    /* Gallery */
     .gallery {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    
+    @media (max-width: 1024px) {
+      .gallery {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .gallery {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      header {
+        padding: 20px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .logo h1 {
+        font-size: 1.8rem;
+      }
+      
+      .logo p {
+        font-size: 0.95rem;
+      }
+      
+      nav {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+      
+      header {
+        padding: 15px;
+      }
+      
+      .logo h1 {
+        font-size: 1.5rem;
+      }
+      
+      .logo p {
+        font-size: 0.85rem;
+      }
+      
+      nav {
+        gap: 15px;
+        font-size: 0.85rem;
+      }
     }
     
     .thumbnail {
@@ -90,7 +151,6 @@
       opacity: 0.8;
     }
     
-    /* Empty State */
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -121,12 +181,24 @@
       cursor: pointer;
     }
     
-    /* Submit Form */
     .submit-view {
       max-width: 500px;
       margin: 0 auto;
       padding: 60px 40px;
       display: none;
+      width: 100%;
+    }
+    
+    @media (max-width: 768px) {
+      .submit-view {
+        padding: 40px 20px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .submit-view {
+        padding: 20px 15px;
+      }
     }
     
     .submit-view.active {
@@ -137,6 +209,12 @@
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 10px;
+    }
+    
+    @media (max-width: 768px) {
+      .submit-view h2 {
+        font-size: 1.5rem;
+      }
     }
     
     .submit-view > p {
@@ -233,28 +311,29 @@
       background: rgba(255, 107, 107, 0.2);
     }
     
-    /* Map View */
+    .info-text {
+      font-size: 0.8rem;
+      opacity: 0.6;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+    
     .map-view {
       display: none;
-      min-height: 60vh;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 40px;
+      width: 100%;
+      flex: 1;
+      position: relative;
     }
     
     .map-view.active {
       display: flex;
     }
     
-    .map-view p {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.5rem;
-      font-style: italic;
-      opacity: 0.7;
+    #map {
+      width: 100%;
+      height: 100%;
     }
     
-    /* Detail Panel - NEW LAYOUT */
     .overlay {
       position: fixed;
       top: 0;
@@ -290,32 +369,23 @@
       transform: translateX(100%);
     }
     
+    @media (max-width: 768px) {
+      .detail-panel {
+        width: 100%;
+        right: auto;
+        left: 0;
+        transform: translateY(100%);
+      }
+      
+      .detail-panel.open {
+        transform: translateY(0);
+      }
+    }
+    
     .detail-panel.open {
       transform: translateX(0);
     }
     
-    .detail-close {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      width: 40px;
-      height: 40px;
-      background: transparent;
-      border: 1px solid #FFFBDB;
-      color: #FFFBDB;
-      border-radius: 50%;
-      font-size: 1.2rem;
-      cursor: pointer;
-      z-index: 250;
-      transition: all 0.3s ease;
-    }
-    
-    .detail-close:hover {
-      background: #FFFBDB;
-      color: #001427;
-    }
-    
-    /* Image container - 2:3 aspect ratio, full height */
     .detail-image {
       aspect-ratio: 2 / 3;
       height: 100vh;
@@ -327,7 +397,14 @@
       position: relative;
     }
     
-    /* Text content overlaid at bottom with gradient fade */
+    @media (max-width: 768px) {
+      .detail-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3 / 4;
+      }
+    }
+    
     .detail-content {
       position: absolute;
       bottom: 0;
@@ -336,6 +413,12 @@
       width: 100%;
       padding: 60px 40px 40px 40px;
       background: linear-gradient(to top, rgba(0, 20, 39, 0.95), rgba(0, 20, 39, 0.7), transparent);
+    }
+    
+    @media (max-width: 768px) {
+      .detail-content {
+        padding: 40px 20px 20px 20px;
+      }
     }
     
     .detail-content .directions {
@@ -354,6 +437,12 @@
       border-bottom: 1px solid #FFFBDB;
     }
     
+    @media (max-width: 768px) {
+      .detail-content .directions a {
+        font-size: 0.9rem;
+      }
+    }
+    
     .detail-content .directions a:hover {
       opacity: 0.7;
     }
@@ -366,6 +455,12 @@
       line-height: 1.2;
     }
     
+    @media (max-width: 768px) {
+      .detail-content h2 {
+        font-size: 1.5rem;
+      }
+    }
+    
     .detail-content .artist {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1rem;
@@ -374,13 +469,24 @@
       margin-bottom: 10px;
     }
     
+    @media (max-width: 768px) {
+      .detail-content .artist {
+        font-size: 0.9rem;
+      }
+    }
+    
     .detail-content .address {
       font-size: 0.9rem;
       opacity: 0.7;
       line-height: 1.6;
     }
     
-    /* Footer */
+    @media (max-width: 768px) {
+      .detail-content .address {
+        font-size: 0.85rem;
+      }
+    }
+    
     footer {
       background: #001427;
       color: #FFFBDB;
@@ -389,6 +495,13 @@
       font-size: 0.85rem;
       opacity: 0.5;
       margin-top: auto;
+    }
+    
+    @media (max-width: 768px) {
+      footer {
+        padding: 20px 15px;
+        font-size: 0.75rem;
+      }
     }
     
     .hidden { display: none !important; }
@@ -401,12 +514,11 @@
       <p>Documenting the art that is Boston's electrical transformers</p>
     </div>
     <nav>
-      <a href="#" id="nav-map" onclick="showView('map'); return false;">Map</a>
-      <a href="#" id="nav-submit" onclick="showView('submit'); return false;">Submit</a>
+      <a id="nav-map" onclick="showView('map'); return false;">Map</a>
+      <a id="nav-submit" onclick="showView('submit'); return false;">Submit</a>
     </nav>
   </header>
 
-  <!-- Gallery View -->
   <div id="gallery-view">
     <div class="gallery" id="gallery"></div>
     <div class="empty-state" id="empty-state">
@@ -415,7 +527,6 @@
     </div>
   </div>
 
-  <!-- Submit View -->
   <div class="submit-view" id="submit-view">
     <h2>Submit a Box</h2>
     <p>Found a painted transformer? Share it with us.</p>
@@ -463,8 +574,17 @@
       </div>
       
       <div class="form-group">
-        <label>Address or cross streets *</label>
-        <input type="text" id="address-input" placeholder="e.g. Corner of Centre St and South St" required>
+        <label>Address or cross streets</label>
+        <input type="text" id="address-input" placeholder="e.g. Corner of Centre St and South St">
+      </div>
+      
+      <div class="form-group">
+        <label>Or enter coordinates (if you have them)</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <input type="number" id="lat-input" placeholder="Latitude" step="0.00001">
+          <input type="number" id="lng-input" placeholder="Longitude" step="0.00001">
+        </div>
+        <p class="info-text">Get from Google Maps: right-click location → "What's here?"</p>
       </div>
       
       <button type="submit" class="submit-btn" id="submit-btn">Submit</button>
@@ -472,15 +592,12 @@
     </form>
   </div>
 
-  <!-- Map View -->
   <div class="map-view" id="map-view">
-    <p>Map coming soon</p>
+    <div id="map"></div>
   </div>
 
-  <!-- Overlay -->
   <div class="overlay" id="overlay" onclick="closePanel()"></div>
 
-  <!-- Detail Panel -->
   <div class="detail-panel" id="detail-panel">
     <div class="detail-image" id="detail-image"></div>
     <div class="detail-content">
@@ -492,25 +609,22 @@
       <p class="address" id="detail-address"></p>
     </div>
   </div>
-  
-  <button class="detail-close" id="detail-close-btn" onclick="closePanel()">✕</button>
 
   <footer>
     A personal project documenting the painted transformers around Boston ✦ Made with love by Beulin
   </footer>
 
   <script>
-    // CONFIG - Replace these with your keys
     const SHEET_ID = '1-_JuDHimLDBVsYuHieRBGXh-nts32UJHM91vmtzz4Zc';
-    const IMGBB_API_KEY = '2075fdf7cabba698e0f90618a30faf58';
+    const IMGBB_API_KEY = 'placeholder';
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwObgNrjsFSxYREzuTLY-ve4efX9D7yhH2rRMdFXDWMKypy3F9agcDeLy-O3saOH6A/exec';
-    
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
     
     let artworks = [];
     let selectedFile = null;
-    
-    // Fetch data from Google Sheet
+    let map = null;
+    let markers = {};
+
     async function fetchArtworks() {
       try {
         const response = await fetch(SHEET_URL);
@@ -520,22 +634,23 @@
         
         artworks = rows.map(row => ({
           id: row.c[0]?.v,
-          artist: row.c[1]?.v,
+          artist: row.c[1]?.v || 'Unknown',
           neighborhood: row.c[2]?.v,
           address: row.c[3]?.v,
           image_url: row.c[4]?.v,
-          status: row.c[5]?.v
+          status: row.c[5]?.v,
+          lat: row.c[6]?.v ? parseFloat(row.c[6].v) : null,
+          lng: row.c[7]?.v ? parseFloat(row.c[7].v) : null
         })).filter(item => item.status === 'approved' && item.image_url);
         
         renderGallery();
       } catch (error) {
-        console.error('Error fetching:', error);
+        console.error('Error fetching artworks:', error);
         artworks = [];
         renderGallery();
       }
     }
-    
-    // Render gallery
+
     function renderGallery() {
       const gallery = document.getElementById('gallery');
       const emptyState = document.getElementById('empty-state');
@@ -552,8 +667,7 @@
         `).join('');
       }
     }
-    
-    // View switching
+
     function showView(view) {
       document.getElementById('gallery-view').classList.add('hidden');
       document.getElementById('submit-view').classList.remove('active');
@@ -563,16 +677,18 @@
       
       if (view === 'gallery') {
         document.getElementById('gallery-view').classList.remove('hidden');
+        destroyMap();
       } else if (view === 'submit') {
         document.getElementById('submit-view').classList.add('active');
         document.getElementById('nav-submit').classList.add('active');
+        destroyMap();
       } else if (view === 'map') {
         document.getElementById('map-view').classList.add('active');
         document.getElementById('nav-map').classList.add('active');
+        setTimeout(() => initMap(), 300);
       }
     }
-    
-    // Panel controls
+
     function openPanel(index) {
       const art = artworks[index];
       document.getElementById('detail-image').style.backgroundImage = `url('${art.image_url}')`;
@@ -589,8 +705,30 @@
       document.getElementById('overlay').classList.remove('open');
       document.getElementById('detail-panel').classList.remove('open');
     }
-    
-    // File upload preview
+
+    async function geocodeAddress(address, neighborhood) {
+      try {
+        const fullAddress = `${address}, ${neighborhood}, Boston, Massachusetts, USA`;
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}`
+        );
+        
+        const results = await response.json();
+        
+        if (results && results.length > 0) {
+          return {
+            lat: parseFloat(results[0].lat),
+            lng: parseFloat(results[0].lon)
+          };
+        } else {
+          return { lat: null, lng: null };
+        }
+      } catch (error) {
+        console.error('Geocoding error:', error);
+        return { lat: null, lng: null };
+      }
+    }
+
     document.getElementById('file-input').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (file) {
@@ -603,7 +741,6 @@
       }
     });
     
-    // Form submission
     document.getElementById('submit-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -622,7 +759,6 @@
       statusEl.classList.add('hidden');
       
       try {
-        // Upload to ImgBB
         const imgFormData = new FormData();
         imgFormData.append('image', selectedFile);
         
@@ -635,14 +771,28 @@
         if (!imgData.success) throw new Error('Image upload failed');
         
         const imageUrl = imgData.data.url;
+        const neighborhood = document.getElementById('neighborhood-input').value;
+        const address = document.getElementById('address-input').value;
+        const manualLat = document.getElementById('lat-input').value;
+        const manualLng = document.getElementById('lng-input').value;
         
-        // Submit to Google Sheet
+        let coordinates = { lat: null, lng: null };
+        
+        if (manualLat && manualLng) {
+          coordinates.lat = parseFloat(manualLat);
+          coordinates.lng = parseFloat(manualLng);
+        } else if (address) {
+          coordinates = await geocodeAddress(address, neighborhood);
+        }
+        
         const sheetData = {
           id: Date.now(),
           artist: document.getElementById('artist-input').value || 'Unknown',
-          neighborhood: document.getElementById('neighborhood-input').value,
-          address: document.getElementById('address-input').value,
-          image_url: imageUrl
+          neighborhood: neighborhood,
+          address: address,
+          image_url: imageUrl,
+          lat: coordinates.lat || '',
+          lng: coordinates.lng || ''
         };
         
         const params = new URLSearchParams();
@@ -651,18 +801,18 @@
         params.append('neighborhood', sheetData.neighborhood);
         params.append('address', sheetData.address);
         params.append('image_url', sheetData.image_url);
+        params.append('lat', sheetData.lat);
+        params.append('lng', sheetData.lng);
         
         await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`, {
           method: 'GET',
           mode: 'no-cors'
         });
         
-        // Success
         statusEl.textContent = 'Submitted! Your photo will appear after review.';
         statusEl.className = 'status-message success';
         statusEl.classList.remove('hidden');
         
-        // Reset form
         document.getElementById('submit-form').reset();
         document.getElementById('upload-area').style.backgroundImage = '';
         document.getElementById('upload-area').classList.remove('has-image');
@@ -679,8 +829,51 @@
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit';
     });
+
+    function initMap() {
+      if (map) return;
+      
+      const mapContainer = document.getElementById('map');
+      if (!mapContainer || !mapContainer.offsetParent) return;
+      
+      map = L.map('map').setView([42.3601, -71.0589], 13);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+      
+      artworks.forEach((art, index) => {
+        if (art.lat && art.lng && !isNaN(art.lat) && !isNaN(art.lng)) {
+          const marker = L.circleMarker([art.lat, art.lng], {
+            radius: 8,
+            fillColor: '#FFFBDB',
+            color: '#625834',
+            weight: 2,
+            opacity: 0.8,
+            fillOpacity: 0.7
+          }).addTo(map);
+          
+          marker.on('click', function() {
+            closePanel();
+            setTimeout(() => openPanel(index), 300);
+          });
+          
+          markers[art.id] = marker;
+        }
+      });
+      
+      map.invalidateSize();
+    }
     
-    // Init
+    function destroyMap() {
+      if (map) {
+        map.remove();
+        map = null;
+        markers = {};
+      }
+    }
+
     fetchArtworks();
   </script>
 </body>
