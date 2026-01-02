@@ -6,7 +6,10 @@
   <title>The Boxes of Boston</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Assistant:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -322,16 +325,117 @@
       display: none;
       width: 100%;
       flex: 1;
+      min-height: calc(100vh - 200px);
       position: relative;
+      background: #001427;
+      z-index: 1;
     }
     
     .map-view.active {
       display: flex;
     }
     
+    .map-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .map-overlay {
+      display: none;
+    }
+    
+    /* Navy filter on OpenStreetMap */
+    .leaflet-tile-pane {
+      filter: saturate(0.3) invert(1) sepia(0.5) hue-rotate(180deg) brightness(0.8) contrast(1.1);
+    }
+    
     #map {
       width: 100%;
       height: 100%;
+      min-height: calc(100vh - 200px);
+      background: #001427;
+    }
+    
+    .thumbnail-marker {
+      width: 50px;
+      height: 65px;
+      border-radius: 6px 6px 6px 0;
+      border: 2px solid #FFFBDB;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .thumbnail-marker:hover {
+      transform: scale(1.15);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    
+    .marker-cluster {
+      background: #625834 !important;
+      border: 3px solid #FFFBDB !important;
+      border-radius: 50% !important;
+      color: #FFFBDB !important;
+      font-family: 'Assistant', sans-serif !important;
+      font-weight: 600 !important;
+      text-align: center !important;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .marker-cluster-small, 
+    .marker-cluster-medium, 
+    .marker-cluster-large {
+      background: #625834 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .marker-cluster-small div,
+    .marker-cluster-medium div,
+    .marker-cluster-large div {
+      background: transparent !important;
+      color: #FFFBDB !important;
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    .marker-cluster div {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: transparent !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    .marker-cluster-small {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .marker-cluster-medium {
+      width: 50px;
+      height: 50px;
+    }
+    
+    .marker-cluster-large {
+      width: 60px;
+      height: 60px;
     }
     
     .overlay {
@@ -341,7 +445,7 @@
       width: 100%;
       height: 100%;
       background: rgba(0,20,39,0.7);
-      z-index: 150;
+      z-index: 1000;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s ease;
@@ -360,7 +464,7 @@
       height: 100vh;
       background: transparent;
       color: #FFFBDB;
-      z-index: 200;
+      z-index: 1001;
       transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
       overflow: hidden;
       display: flex;
@@ -403,6 +507,29 @@
         height: auto;
         aspect-ratio: 3 / 4;
       }
+    }
+    
+    .detail-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 20, 39, 0.7);
+      border: none;
+      border-radius: 50%;
+      color: #FFFBDB;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: background 0.3s ease;
+    }
+    
+    .detail-close:hover {
+      background: rgba(0, 20, 39, 0.9);
     }
     
     .detail-content {
@@ -514,6 +641,7 @@
       <p>Documenting the art that is Boston's electrical transformers</p>
     </div>
     <nav>
+      <a id="nav-gallery" onclick="showView('gallery'); return false;">Gallery</a>
       <a id="nav-map" onclick="showView('map'); return false;">Map</a>
       <a id="nav-submit" onclick="showView('submit'); return false;">Submit</a>
     </nav>
@@ -593,13 +721,18 @@
   </div>
 
   <div class="map-view" id="map-view">
-    <div id="map"></div>
+    <div class="map-wrapper">
+      <div id="map"></div>
+      <div class="map-overlay"></div>
+    </div>
   </div>
 
   <div class="overlay" id="overlay" onclick="closePanel()"></div>
 
   <div class="detail-panel" id="detail-panel">
-    <div class="detail-image" id="detail-image"></div>
+    <div class="detail-image" id="detail-image">
+      <button class="detail-close" onclick="closePanel()">×</button>
+    </div>
     <div class="detail-content">
       <div class="directions">
         <a href="#" id="detail-directions" target="_blank">Get Directions →</a>
@@ -611,7 +744,7 @@
   </div>
 
   <footer>
-    A personal project documenting the painted transformers around Boston ✦ Made with love by Beulin
+    A personal project documenting the painted transformers around Boston ✦ Made with love by <a href="https://beulinashika.me" target="_blank" style="color: #FFFBDB; text-decoration: underline;">Beulin</a>
   </footer>
 
   <script>
@@ -672,20 +805,27 @@
       document.getElementById('gallery-view').classList.add('hidden');
       document.getElementById('submit-view').classList.remove('active');
       document.getElementById('map-view').classList.remove('active');
+      document.getElementById('nav-gallery').classList.remove('active');
       document.getElementById('nav-map').classList.remove('active');
       document.getElementById('nav-submit').classList.remove('active');
       
+      const footer = document.querySelector('footer');
+      
       if (view === 'gallery') {
         document.getElementById('gallery-view').classList.remove('hidden');
+        document.getElementById('nav-gallery').classList.add('active');
+        footer.style.display = 'block';
         destroyMap();
       } else if (view === 'submit') {
         document.getElementById('submit-view').classList.add('active');
         document.getElementById('nav-submit').classList.add('active');
+        footer.style.display = 'block';
         destroyMap();
       } else if (view === 'map') {
         document.getElementById('map-view').classList.add('active');
         document.getElementById('nav-map').classList.add('active');
-        setTimeout(() => initMap(), 300);
+        footer.style.display = 'none';
+        setTimeout(() => initMap(), 100);
       }
     }
 
@@ -834,36 +974,71 @@
       if (map) return;
       
       const mapContainer = document.getElementById('map');
-      if (!mapContainer || !mapContainer.offsetParent) return;
+      if (!mapContainer) return;
       
-      map = L.map('map').setView([42.3601, -71.0589], 13);
+      // Boston area bounds for panning restriction
+      const bostonBounds = L.latLngBounds(
+        [42.23, -71.19], // Southwest corner
+        [42.42, -70.98]  // Northeast corner
+      );
       
+      map = L.map(mapContainer, {
+        maxBounds: bostonBounds.pad(0.3),
+        maxBoundsViscosity: 0.8,
+        minZoom: 12,
+        maxZoom: 18
+      }).setView([42.34, -71.08], 14);
+      
+      // OpenStreetMap with navy filter applied via CSS
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
       }).addTo(map);
+      
+      // Create marker cluster group
+      const clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        iconCreateFunction: function(cluster) {
+          const count = cluster.getChildCount();
+          let size = 'small';
+          if (count > 5) size = 'medium';
+          if (count > 10) size = 'large';
+          
+          return L.divIcon({
+            html: `<div>${count}</div>`,
+            className: `marker-cluster marker-cluster-${size}`,
+            iconSize: L.point(40, 40)
+          });
+        }
+      });
       
       artworks.forEach((art, index) => {
         if (art.lat && art.lng && !isNaN(art.lat) && !isNaN(art.lng)) {
-          const marker = L.circleMarker([art.lat, art.lng], {
-            radius: 8,
-            fillColor: '#FFFBDB',
-            color: '#625834',
-            weight: 2,
-            opacity: 0.8,
-            fillOpacity: 0.7
-          }).addTo(map);
+          const thumbnailIcon = L.divIcon({
+            className: 'thumbnail-marker-wrapper',
+            html: `<div class="thumbnail-marker" style="background-image: url('${art.image_url}')"></div>`,
+            iconSize: [50, 65],
+            iconAnchor: [0, 65],
+            popupAnchor: [25, -65]
+          });
+          
+          const marker = L.marker([art.lat, art.lng], { icon: thumbnailIcon });
           
           marker.on('click', function() {
             closePanel();
             setTimeout(() => openPanel(index), 300);
           });
           
+          clusterGroup.addLayer(marker);
           markers[art.id] = marker;
         }
       });
       
-      map.invalidateSize();
+      map.addLayer(clusterGroup);
+      
+      setTimeout(() => map.invalidateSize(), 150);
     }
     
     function destroyMap() {
